@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+
+<html>
+<head>
+    <title>Progress Tree</title>
+    <meta charset="utf-8">
+    <link href="bootstrap-3.1.1-dist/css/bootstrap.css" rel="stylesheet">
+</head>
+<style type="text/css">
+#content {
+    padding-left: 50px;
+}
+.row {
+}
+</style>
+
+<body>
+
+<div class="row">
+    <div class="col-md-4" id="content">
+        <h1>Make a change</h1>
+        <p>Save the Children has been working to fight hunger, prevent malnutrition and improve the lives of boys and girls in Africa since 1963. Whether we are working with orphaned children in sub-Saharan Africa or emergency relief for refugees in North Africa, Save the Children strives to meet the needs to vulnerable children and their families with lifesaving and life-changing programs. Charities can make a difference, with a hand-up, not a handout.</p>
+        <button class="btn btn-primary" id='donate' type="submit">Donate</button>
+        <button class="btn btn-success" id='animate' type="submit">Animate</button>
+        <button class="btn btn-danger" id='atonce' type="submit">At Once</button>
+    </div>
+    <div class="col-md-8" id ="svgArea"></div>
+</div>
+
+<script src="D3/d3.js"></script>
+<script src="bootstrap-3.1.1-dist/js/jquery-1.11.1.js"></script>
+<script src="bootstrap-3.1.1-dist/js/bootstrap.min.js"></script>
+
+<script>
+
+var branches = [];
+var leaves = [];
+// var da = degToRad(30); // Angle delta
+// var dl = 0.8; // Length delta (factor)
+// var aRand = degToRad(10);
+var ar = 0.7; // Randomness
+
+var seedWidth = 10;
+var maxDepth = 10;
+
+function degToRad(degree) {
+    return degree*Math.PI/180;
+}
+
+function radToDeg(radian) {
+    return radian*180/Math.PI
+}
+
+// transform angle with y axis as a basis. so 0 degree means vertical
+function normalizeAngle(rad) {
+    return degToRad(90)+rad;
+}
+
+// transform angle with x axis as basis like normal polar coordinate
+function denormalizeAngle(rad) {
+    return rad - degToRad(90);
+}
+
+// Tree creation functions
+function branch(b) {
+    var end = endPt(b), daR, newB, da, dl, aRand, node, id;
+
+    branches.push(b);
+
+    // start from depth n+1 the length is 0.8*length
+    if (b.depth >= 0 && b.depth < 1) {
+        dl = 0.5;
+    } else {
+        dl = 0.8;
+    }
+
+    //start from depth n+1 the angle is 20
+    // if (b.depth >= 3) {
+    //     da = degToRad(25);
+    //     aRand = degToRad(10);
+    // } else if (b.depth >= 5) {
+    //     da = degToRad(30);
+    //     aRand = degToRad(10);
+    // } else {
+    //     da = degToRad(20);
+    //     aRand = degToRad(5);
+    // }
+
+    da = degToRad(45);
+    aRand = degToRad(10);
+
+    if (b.depth === maxDepth) {
+        b.visible = false;
+        leaves.push(b);
+        return;
+    }
+
+
+    // create node array, contains id of branch that has been traversed by the branch
+    node = [];
+    node.push(b.i);
+    node = node.concat(b.node);
+
+    // console.log(b.i);
+    // console.log(b.depth);
+    // console.log(b.dl);
+    // console.log('-----')
+
+    // Left branch
+    //daR = ar * Math.random() - ar * 0.5;
+    daR = Math.random() * (aRand + aRand) - aRand; //random angle between -aRand and aRand
+    newB = {
+        i: branches.length,
+        x: end.x,
+        y: end.y,
+        angle: b.angle + da + daR,
+        length: b.length * dl,
+        depth: b.depth + 1,
+        parent: b.i,
+        node: node,
+        dl: dl,
+        da: radToDeg(da),
+        aRand: aRand
+    };
+    branch(newB);
+
+    // Right branch
+    //daR = ar * Math.random() - ar * 0.5;
+    daR = Math.random() * (aRand + aRand) - aRand; //random angle between -aRand and aRand
+    newB = {
+        i: branches.length,
+        x: end.x, 
+        y: end.y, 
+        angle: b.angle - da + daR, 
+        length: b.length * dl, 
+        depth: b.depth + 1,
+        parent: b.i,
+        node: node,
+        dl: dl,
+        da: radToDeg(da),
+        aRand: aRand
+    };
+    branch(newB);
+}
+
+function endPt(b) {
+    // Return endpoint of branch
+    var x = b.x + b.length * Math.cos( normalizeAngle(b.angle) );
+    var y = b.y - b.length * Math.sin( normalizeAngle(b.angle) );
+    return {x: x, y: y};
+}
+
+// define svg for placeholder
+//var width = 800;
+var width = document.getElementById("svgArea").offsetWidth;
+var height = 800;
+var svg = d3.select("#svgArea").append("svg")
+            .attr("width", width)
+            .attr("height", height);
+
+// Tree configuration
+var seed = {i: 0, x: width/2, y: height-0, angle: 0, length: height/4, depth: 0, node: []}; // a = angle, l = length, d = depth
+
+//svg.style("background-color", "aliceblue");
+
+function x1(d) {return d.x;}
+function y1(d) {return d.y;}
+function x2(d) {return endPt(d).x;}
+function y2(d) {return endPt(d).y;}
+
+function highlightParents(d) {
+    var colour = d3.event.type === 'mouseover' ? 'green' : '#470000';
+    var depth = d.depth;
+    for(var i = 0; i <= depth; i++) {
+        d3.select('#id-'+parseInt(d.i)).style('stroke', colour);
+        d = branches[d.parent];
+    }   
+}
+
+function highlightParents2(d) {
+    console.log(d);
+    var colour = d3.event.type === 'mouseover' ? 'green' : '#470000';
+    var depth = d.depth;
+    for(var i = 0; i <= depth; i++) {
+        d3.select('#id-'+parseInt(d.i)).style('stroke', colour);
+        d = branches[d.parent];
+    }   
+}
+
+function highlightLeaf(d,i) {
+    svg.selectAll('ellipse')
+        .style('fill', 'grey');
+
+    svg.select('ellipse#id-'+i)
+        .style('fill', 'green');
+} 
+
+branch(seed);
+
+
+// differentiate branch based on depth of branch
+var branchingDepth = 3;
+// get all branch width depth=n, using jQuery grep function
+var keyBranches = $.grep(branches, function(e){ return e.depth == branchingDepth; });
+
+// scan all item in branches, find which branch belong to which key branches
+branches.forEach(function(d){
+    keyBranches.forEach(function(e){
+        var hasKey = d.node.indexOf(e.i);
+        if (hasKey != -1) {
+            d.keyBranch = e.i;
+        }
+    });
+});
+
+// if keyBranch == undefined, that means the branch is outside the branching
+// gives value of -1 for easier color coding
+branches.forEach(function(d){
+    if (typeof d.keyBranch == 'undefined') {
+        d.keyBranch = -1;
+    }
+})
+
+var branchesOfBranches = d3.nest()
+          .key(function(d) { return d.keyBranch;})
+          .entries(branches);
+
+var color = d3.scale.category20();
+
+svg.selectAll('line')
+    .data(branches)
+    .enter()
+    .append('line')
+    .attr('x1', x1)
+    .attr('y1', y1)
+    .attr('x2', x2)
+    .attr('y2', y2)
+    //.attr('stroke-width', 5)
+    .attr('stroke', function(d){
+        if (d.keyBranch == -1) {
+            return 'grey'
+        } else {
+            return color(d.keyBranch);
+        }
+    })
+    .style('stroke-width', function(d) {return parseInt(seedWidth + 1 - d.depth) + 'px';})
+    .attr('id', function(d) {return 'id-'+d.i;})
+    .on('mouseover', highlightParents2)
+    .on('mouseout', highlightParents);
+
+
+// differentiate leaf based on branching
+// scan all item in leaves, find which leaf belong to which key branches
+leaves.forEach(function(d){
+    keyBranches.forEach(function(e){
+        var hasKey = d.node.indexOf(e.i);
+        if (hasKey != -1) {
+            d.keyBranch = e.i;
+        }
+    });
+});
+
+// if keyBranch == undefined, that means the leaf is outside the branching
+// gives value of -1 for easier color coding
+// although should be impossible since leaf is the outmost branch
+leaves.forEach(function(d){
+    if (typeof d.keyBranch == 'undefined') {
+        d.keyBranch = -1;
+    }
+})
+
+svg.selectAll('ellipse')
+    .data(leaves)
+    .enter()
+    .append('ellipse')
+    .attr('cx', x2)
+    .attr('cy', y2)
+    .attr('rx', 4)
+    .attr('ry', 10)
+    .attr('id', function(d,i){return 'id-' + i})
+    .attr('visibility', function(d){
+         return d.visible ? 'visible' : 'hidden'
+    })
+    .attr('transform', function(d){
+        // angle in making branch and rotate is different. 20 degree angle in branch eq to -20 degree angle in rotate
+        return 'rotate(' + radToDeg(-d.angle) + ' ' + endPt(d).x + ' ' + endPt(d).y + ')';
+        //return 'rotate(' + radToDeg(denormalizeAngle(d.angle)) + ' ' + endPt(d).x + ' ' + endPt(d).y + ')';
+    })
+    //.attr('transform', function(d){return "rotate(" + radToDeg(denormalizeAngle(d.angle)) + ")"})
+    .attr('stroke', 'black')
+    .attr('fill', function(d){
+        return color(d.keyBranch);
+    })
+    .on('mouseover', highlightLeaf)
+    .on('mouseout', function(d){svg.selectAll('ellipse').style('fill', 'green')});
+
+d3.select('#donate').on('click', update);
+d3.select('#animate').on('click', animate);
+d3.select('#atonce').on('click', atonce);
+
+var numOfClick = 0;
+
+function update() {
+    console.log('btn clicked')
+    numOfClick++;
+    leaves[numOfClick].visible = true;
+    svg
+        .selectAll('ellipse')
+        .data(leaves)
+        .transition()
+        .attr('visibility', function(d){return d.visible ? 'visible' : 'hidden'});
+}
+
+function animate() {
+    for (i = 0; i < leaves.length; i++) {
+        setTimeout(function(i) {
+            leaves[i].visible = true;
+            svg
+                .selectAll('ellipse#id-'+i)
+                .data(leaves)
+                .transition()
+                .attr('visibility', function(d){return d.visible ? 'visible' : 'hidden'});
+        }, 100, i);
+        
+
+    }
+}
+
+function atonce() {
+    leaves.forEach(function(d){
+        d.visible = true;
+    })
+    svg
+        .selectAll('ellipse')
+        .data(leaves)
+        .transition()
+        .attr('visibility', function(d){return d.visible ? 'visible' : 'hidden'});
+}
+
+// branches.forEach(function(d) {
+//     keyBranches.forEach(e) {
+//         var hasKey = d.node.indexOf(d.i);
+//         if (hasKey != -1) {
+//             d.keyBranch = d.node.i;
+//         }
+//     }
+// }
+
+
+</script>
+</body>
+
+</html>

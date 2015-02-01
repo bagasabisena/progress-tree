@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+
+<html>
+<head>
+    <title>Progress Tree</title>
+    <meta charset="utf-8">
+    <link href="bootstrap-3.1.1-dist/css/bootstrap.css" rel="stylesheet">
+</head>
+<style type="text/css">
+#content {
+    padding-left: 50px;
+}
+.row {
+    height: 800px;
+}
+</style>
+
+<body>
+
+<div class="row">
+    <div class="col-md-4" id="content">
+        <h1>Make a change</h1>
+        <button class="btn btn-primary" id='donate' type="submit">Donate</button>
+        <button class="btn btn-success" id='animate' type="submit">Animate</button>
+        <button class="btn btn-danger" id='atonce' type="submit">At Once</button>
+    </div>
+    <div class="col-md-8" id ="svgArea"></div>
+</div>
+
+<script src="D3/d3.js"></script>
+<script src="bootstrap-3.1.1-dist/js/jquery-1.11.1.js"></script>
+<script src="bootstrap-3.1.1-dist/js/bootstrap.min.js"></script>
+
+<script>
+
+var branches = [];
+var leaves = [];
+// var da = degToRad(30); // Angle delta
+// var dl = 0.8; // Length delta (factor)
+// var aRand = degToRad(10);
+var ar = 0.7; // Randomness
+
+var seedWidth = 10;
+var maxDepth = 1;
+
+function degToRad(degree) {
+    return degree*Math.PI/180;
+}
+
+function radToDeg(radian) {
+    return radian*180/Math.PI
+}
+
+// transform angle with y axis as a basis. so 0 degree means vertical
+function normalizeAngle(rad) {
+    return degToRad(90)+rad;
+}
+
+// transform angle with x axis as basis like normal polar coordinate
+function denormalizeAngle(rad) {
+    return rad - degToRad(90);
+}
+
+// Tree creation functions
+function branch(b) {
+    var end = endPt(b), daR, newB, da, dl, aRand;
+
+    branches.push(b);
+
+    // start from depth n+1 the length is 0.8*length
+    if (b.depth >= 0 && b.depth < 1) {
+        dl = 0.4;
+    } else {
+        dl = 0.8;
+    }
+
+    // start from depth n+1 the angle is 20
+    if (b.depth >= 3) {
+        da = degToRad(20);
+        aRand = degToRad(10);
+    } else if (b.depth >= 5) {
+        da = degToRad(15);
+        aRand = degToRad(5);
+    } else {
+        da = degToRad(25);
+        aRand = degToRad(10);
+    }
+
+    if (b.depth === maxDepth) {
+        b.visible = false;
+        leaves.push(b);
+        return;
+    }
+
+    // console.log(b.i);
+    // console.log(b.depth);
+    // console.log(b.dl);
+    // console.log('-----')
+
+    // Left branch
+    //daR = ar * Math.random() - ar * 0.5;
+    daR = Math.random() * (aRand + aRand) - aRand; //random angle between -aRand and aRand
+    newB = {
+        i: branches.length,
+        x: end.x,
+        y: end.y,
+        angle: b.angle + da + daR,
+        length: b.length * dl,
+        depth: b.depth + 1,
+        parent: b.i,
+        dl: dl,
+        da: radToDeg(da),
+        aRand: aRand
+    };
+    branch(newB);
+
+    // Right branch
+    //daR = ar * Math.random() - ar * 0.5;
+    daR = Math.random() * (aRand + aRand) - aRand; //random angle between -aRand and aRand
+    newB = {
+        i: branches.length,
+        x: end.x, 
+        y: end.y, 
+        angle: b.angle - da + daR, 
+        length: b.length * dl, 
+        depth: b.depth + 1,
+        parent: b.i,
+        dl: dl,
+        da: radToDeg(da),
+        aRand: aRand
+    };
+    branch(newB);
+}
+
+function endPt(b) {
+    // Return endpoint of branch
+    var x = b.x + b.length * Math.cos( normalizeAngle(b.angle) );
+    var y = b.y - b.length * Math.sin( normalizeAngle(b.angle) );
+    return {x: x, y: y};
+}
+
+// define svg for placeholder
+//var width = 800;
+var width = document.getElementById("svgArea").offsetWidth;
+var height = 800;
+var svg = d3.select("#svgArea").append("svg")
+            .attr("width", width)
+            .attr("height", height);
+
+// Tree configuration
+var seed = {i: 0, x: width/2, y: height-0, angle: 0, length: height/3, depth: 0}; // a = angle, l = length, d = depth
+
+//svg.style("background-color", "aliceblue");
+
+function x1(d) {return d.x;}
+function y1(d) {return d.y;}
+function x2(d) {return endPt(d).x;}
+function y2(d) {return endPt(d).y;}
+
+function highlightParents(d) {
+    var colour = d3.event.type === 'mouseover' ? 'green' : '#470000';
+    var depth = d.depth;
+    for(var i = 0; i <= depth; i++) {
+        d3.select('#id-'+parseInt(d.i)).style('stroke', colour);
+        d = branches[d.parent];
+    }   
+}
+
+function highlightParents2(d) {
+    console.log(d);
+    var colour = d3.event.type === 'mouseover' ? 'green' : '#470000';
+    var depth = d.depth;
+    for(var i = 0; i <= depth; i++) {
+        d3.select('#id-'+parseInt(d.i)).style('stroke', colour);
+        d = branches[d.parent];
+    }   
+}
+
+branch(seed);
+
+svg
+    .append('ellipse')
+    .attr('cx', 400)
+    .attr('cy', 400)
+    .attr('rx', 50)
+    .attr('ry', 100)
+    .attr('transform', function(d){
+        // var x2 = endPt(d).x;
+        // var y2 = endPt(d).y;
+        // var angle = Math.atan2(y2,x2);
+        // console.log(angle);
+        return 'rotate(' + -20 + ' ' + 400 + ' ' + 400 + ')';
+        //return 'rotate(' + radToDeg(denormalizeAngle(d.angle)) + ' ' + endPt(d).x + ' ' + endPt(d).y + ')';
+    })
+    //.attr('transform', function(d){return "rotate(" + radToDeg(denormalizeAngle(d.angle)) + ")"})
+    .attr('stroke', 'black')
+    .attr('fill-opacity', 0)
+    .attr('fill', "green");
+
+svg
+    .append('circle')
+    .attr('cx', 400)
+    .attr('cy', 400)
+    .attr('r', 1);
+
+// svg.selectAll('line')
+//     .data(branches)
+//     .enter()
+//     .append('line')
+//     .attr('x1', x1)
+//     .attr('y1', y1)
+//     .attr('x2', x2)
+//     .attr('y2', y2)
+//     //.attr('stroke-width', 5)
+//     .attr('stroke', '#470000')
+//     .style('stroke-width', function(d) {return parseInt(seedWidth + 1 - d.depth) + 'px';})
+//     .attr('id', function(d) {return 'id-'+d.i;})
+//     .on('mouseover', highlightParents2)
+//     .on('mouseout', highlightParents);
+
+// svg.selectAll('ellipse')
+//     .data(leaves)
+//     .enter()
+//     .append('ellipse')
+//     .attr('cx', x2)
+//     .attr('cy', y2)
+//     .attr('rx', 4)
+//     .attr('ry', 10)
+//     .attr('id', function(d,i){return 'id-' + i})
+//     .attr('visibility', function(d){
+//          return d.visible ? 'visible' : 'hidden'
+//     })
+//     .attr('transform', function(d){
+//         var x2 = endPt(d).x;
+//         var y2 = endPt(d).y;
+//         var angle = Math.atan2(y2,x2);
+//         console.log(angle);
+//         return 'rotate(' + radToDeg(denormalizeAngle(angle)) + ' ' + endPt(d).x + ' ' + endPt(d).y + ')';
+//         //return 'rotate(' + radToDeg(denormalizeAngle(d.angle)) + ' ' + endPt(d).x + ' ' + endPt(d).y + ')';
+//     })
+//     //.attr('transform', function(d){return "rotate(" + radToDeg(denormalizeAngle(d.angle)) + ")"})
+//     .attr('stroke', 'black')
+//     .attr('fill', "green");
+
+d3.select('#donate').on('click', update);
+d3.select('#animate').on('click', animate);
+d3.select('#atonce').on('click', atonce);
+
+var numOfClick = 0;
+
+function update() {
+    console.log('btn clicked')
+    numOfClick++;
+    leaves[numOfClick].visible = true;
+    svg
+        .selectAll('ellipse')
+        .data(leaves)
+        .transition()
+        .attr('visibility', function(d){return d.visible ? 'visible' : 'hidden'});
+}
+
+function animate() {
+    for (i = 0; i < leaves.length; i++) {
+        setTimeout(function(i) {
+            leaves[i].visible = true;
+            svg
+                .selectAll('ellipse#id-'+i)
+                .data(leaves)
+                .transition()
+                .attr('visibility', function(d){return d.visible ? 'visible' : 'hidden'});
+        }, 100, i);
+        
+
+    }
+}
+
+function atonce() {
+    leaves.forEach(function(d){
+        d.visible = true;
+    })
+    svg
+        .selectAll('ellipse')
+        .data(leaves)
+        .transition()
+        .attr('visibility', function(d){return d.visible ? 'visible' : 'hidden'});
+}
+
+
+</script>
+</body>
+
+</html>
