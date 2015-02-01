@@ -8,7 +8,7 @@
 </head>
 <style type="text/css">
 #content {
-    
+    padding-left: 50px;
 }
 .row {
 }
@@ -19,10 +19,10 @@
 <div class="row">
     <div class="col-md-4" id="content">
         <h1>Make a change</h1>
+        <p>Save the Children has been working to fight hunger, prevent malnutrition and improve the lives of boys and girls in Africa since 1963. Whether we are working with orphaned children in sub-Saharan Africa or emergency relief for refugees in North Africa, Save the Children strives to meet the needs to vulnerable children and their families with lifesaving and life-changing programs. Charities can make a difference, with a hand-up, not a handout.</p>
         <button class="btn btn-primary" id='donate' type="submit">Donate</button>
         <button class="btn btn-success" id='animate' type="submit">Animate</button>
         <button class="btn btn-danger" id='atonce' type="submit">At Once</button>
-    </div>
     </div>
     <div class="col-md-8" id ="svgArea"></div>
 </div>
@@ -63,34 +63,43 @@ function denormalizeAngle(rad) {
 
 // Tree creation functions
 function branch(b) {
-    var end = endPt(b), daR, newB, da, dl, aRand;
+    var end = endPt(b), daR, newB, da, dl, aRand, node, id;
 
     branches.push(b);
 
     // start from depth n+1 the length is 0.8*length
     if (b.depth >= 0 && b.depth < 1) {
-        dl = 0.4;
+        dl = 0.5;
     } else {
         dl = 0.8;
     }
 
-    // start from depth n+1 the angle is 20
-    if (b.depth >= 3) {
-        da = degToRad(20);
-        aRand = degToRad(10);
-    } else if (b.depth >= 5) {
-        da = degToRad(10);
-        aRand = degToRad(5);
-    } else {
-        da = degToRad(30);
-        aRand = degToRad(10);
-    }
+    //start from depth n+1 the angle is 20
+    // if (b.depth >= 3) {
+    //     da = degToRad(25);
+    //     aRand = degToRad(10);
+    // } else if (b.depth >= 5) {
+    //     da = degToRad(30);
+    //     aRand = degToRad(10);
+    // } else {
+    //     da = degToRad(20);
+    //     aRand = degToRad(5);
+    // }
+
+    da = degToRad(25);
+    aRand = degToRad(5);
 
     if (b.depth === maxDepth) {
         b.visible = false;
         leaves.push(b);
         return;
     }
+
+
+    // create node array, contains id of branch that has been traversed by the branch
+    node = [];
+    node.push(b.i);
+    node = node.concat(b.node);
 
     // console.log(b.i);
     // console.log(b.depth);
@@ -108,6 +117,7 @@ function branch(b) {
         length: b.length * dl,
         depth: b.depth + 1,
         parent: b.i,
+        node: node,
         dl: dl,
         da: radToDeg(da),
         aRand: aRand
@@ -125,6 +135,7 @@ function branch(b) {
         length: b.length * dl, 
         depth: b.depth + 1,
         parent: b.i,
+        node: node,
         dl: dl,
         da: radToDeg(da),
         aRand: aRand
@@ -140,14 +151,15 @@ function endPt(b) {
 }
 
 // define svg for placeholder
-var width = 800; 
+//var width = 800;
+var width = document.getElementById("svgArea").offsetWidth;
 var height = 800;
 var svg = d3.select("#svgArea").append("svg")
             .attr("width", width)
             .attr("height", height);
 
 // Tree configuration
-var seed = {i: 0, x: width/2, y: height-0, angle: 0, length: height/3, depth: 0}; // a = angle, l = length, d = depth
+var seed = {i: 0, x: width/2, y: height-0, angle: 0, length: height/4, depth: 0, node: []}; // a = angle, l = length, d = depth
 
 //svg.style("background-color", "aliceblue");
 
@@ -175,6 +187,14 @@ function highlightParents2(d) {
     }   
 }
 
+function highlightLeaf(d,i) {
+    svg.selectAll('ellipse')
+        .style('fill', 'grey');
+
+    svg.select('ellipse#id-'+i)
+        .style('fill', 'green');
+} 
+
 branch(seed);
 
 svg.selectAll('line')
@@ -198,18 +218,22 @@ svg.selectAll('ellipse')
     .append('ellipse')
     .attr('cx', x2)
     .attr('cy', y2)
-    .attr('rx', 10)
-    .attr('ry', 20)
+    .attr('rx', 4)
+    .attr('ry', 10)
     .attr('id', function(d,i){return 'id-' + i})
     .attr('visibility', function(d){
          return d.visible ? 'visible' : 'hidden'
     })
     .attr('transform', function(d){
-        return 'rotate(' + radToDeg(denormalizeAngle(d.angle)) + ' ' + endPt(d).x + ' ' + endPt(d).y + ')';
+        // angle in making branch and rotate is different. 20 degree angle in branch eq to -20 degree angle in rotate
+        return 'rotate(' + radToDeg(-d.angle) + ' ' + endPt(d).x + ' ' + endPt(d).y + ')';
+        //return 'rotate(' + radToDeg(denormalizeAngle(d.angle)) + ' ' + endPt(d).x + ' ' + endPt(d).y + ')';
     })
     //.attr('transform', function(d){return "rotate(" + radToDeg(denormalizeAngle(d.angle)) + ")"})
     .attr('stroke', 'black')
-    .attr('fill', "green");
+    .attr('fill', "green")
+    .on('mouseover', highlightLeaf)
+    .on('mouseout', function(d){svg.selectAll('ellipse').style('fill', 'green')});
 
 d3.select('#donate').on('click', update);
 d3.select('#animate').on('click', animate);
