@@ -20,6 +20,7 @@
 <script>
 
 var branches = [];
+var leaves = [];
 var da = degToRad(30); // Angle delta
 var dl = 0.8; // Length delta (factor)
 var ar = 0.7; // Randomness
@@ -41,8 +42,10 @@ function branch(b) {
 
     branches.push(b);
 
-    if (b.depth === maxDepth)
+    if (b.depth === maxDepth) {
+        leaves.push(b);
         return;
+    }
 
     // Left branch
     daR = ar * Math.random() - ar * 0.5;
@@ -90,7 +93,7 @@ var svg = d3.select("#svgArea").append("svg")
 // Tree configuration
 var seed = {i: 0, x: width/2, y: height-0, angle: 0, length: height/6, depth: 0}; // a = angle, l = length, d = depth
 
-svg.style("background-color", "aliceblue");
+//svg.style("background-color", "aliceblue");
 
 function x1(d) {return d.x;}
 function y1(d) {return d.y;}
@@ -108,8 +111,7 @@ function highlightParents(d) {
 
 branch(seed);
 
-d3.select('svg')
-    .selectAll('line')
+svg.selectAll('line')
     .data(branches)
     .enter()
     .append('line')
@@ -123,6 +125,16 @@ d3.select('svg')
     .attr('id', function(d) {return 'id-'+d.i;})
     .on('mouseover', highlightParents)
     .on('mouseout', highlightParents);
+
+svg.selectAll('circle')
+    .data(leaves)
+    .enter()
+    .append('circle')
+    .attr('cx', x2)
+    .attr('cy', y2)
+    .attr('r', 5)
+    .attr('fill', "blue");
+
 
 </script>
 </body>
