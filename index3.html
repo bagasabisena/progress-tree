@@ -241,7 +241,8 @@ var width = document.getElementById("svgArea").offsetWidth;
 var height = 800;
 var svg = d3.select("#svgArea").append("svg")
             .attr("width", width)
-            .attr("height", height);
+            .attr("height", height)
+            .attr('viewBox', '0 0 ' + width + ' ' + height);
 
 // Tree configuration
 var seed = {i: 0, x: width/2, y: height-0, angle: 0, length: height/4, depth: 0, node: []}; // a = angle, l = length, d = depth
