@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+
+<html>
+<head>
+    <title>Progress Tree</title>
+    <meta charset="utf-8">
+    <link href="bootstrap-3.1.1-dist/css/bootstrap.css" rel="stylesheet">
+</head>
+<style type="text/css">
+#content {
+    padding-left: 50px;
+}
+.row {
+}
+</style>
+
+<body>
+
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<div class="row">
+    <div class="col-md-12" id ="svgArea">
+        <svg
+           xmlns:dc="http://purl.org/dc/elements/1.1/"
+           xmlns:cc="http://creativecommons.org/ns#"
+           xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+           xmlns:svg="http://www.w3.org/2000/svg"
+           xmlns="http://www.w3.org/2000/svg"
+           xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+           xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+           width="186.32976"
+           height="170.42111"
+           id="svg1901"
+           sodipodi:version="0.32"
+           inkscape:version="0.46+pre4"
+           sodipodi:docname="leaf.svg"
+           sodipodi:docbase="C:\Important\svg"
+           inkscape:output_extension="org.inkscape.output.svg.inkscape"
+           version="1.0">
+          <defs>
+                <g
+                    inkscape:label="Taso 1"
+                    inkscape:groupmode="layer"
+                    id="layer1"
+                    style="opacity:1"
+                    transform="scale(0.25) rotate(132 355 210)">
+                    <path
+                        style="fill:#89a02c;fill-rule:evenodd;stroke:#4c5a17;stroke-width:3.00000024;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+                        d="M 422.27292,632.34394 C 432.85918,616.61295 448.34076,612.0402 448.34076,612.0402 C 448.34076,612.0402 442.54386,606.55398 439.22989,607.84521 C 426.2285,617.56064 419.44945,629.60334 419.44945,629.60334 C 266.27427,623.18356 285.91787,686.20064 265.011,767.7044 C 381.6304,796.72098 433.42735,737.61667 422.27292,632.34394 z"
+                        id="path2159"
+                        sodipodi:nodetypes="cccccc" />
+                    <path
+                        style="fill:#abc837;fill-opacity:1;fill-rule:evenodd;stroke:none;stroke-width:10;stroke-linecap:round;stroke-linejoin:round;stroke-opacity:1"
+                        d="M 302.27759,741.21062 C 312.59094,737.71342 319.22122,728.61389 328.93943,724.10035 C 335.14269,714.75636 349.43533,712.00907 346.17152,729.80846 C 341.8614,737.76032 352.91408,760.81454 355.72913,743.55812 C 358.08954,731.20136 348.85485,717.1466 351.93186,705.46388 C 358.49071,696.04816 365.40665,685.64598 375.07218,679.76244 C 382.80036,689.48542 383.13328,707.52311 382.74251,719.46905 C 396.22556,732.1495 392.54206,703.058 389.47711,694.77056 C 382.451,679.12849 383.55459,664.84496 397.6377,660.1622 C 404.73986,658.06346 419.53919,640.77051 403.1361,642.87667 C 392.38688,648.00479 386.31989,661.9091 373.03691,661.89063 C 361.92009,659.56636 338.81043,639.82534 336.66956,655.76491 C 342.93053,664.24787 369.9026,660.24127 365.11729,674.35945 C 353.65845,678.84665 352.6711,701.25674 336.37406,695.49154 C 326.77131,692.78319 307.80361,677.82768 305.15926,691.25865 C 310.75635,700.18676 334.56641,695.04273 333.28119,708.74618 C 321.90598,718.12074 305.73983,723.82061 298.22278,736.6954 C 298.65539,738.6772 300.291,740.78 302.27759,741.21062 z"
+                       id="path3147" />
+                </g>
+          </defs>
+          <sodipodi:namedview
+             id="base"
+             pagecolor="#ffffff"
+             bordercolor="#666666"
+             borderopacity="1.0"
+             inkscape:pageopacity="0.0"
+             inkscape:pageshadow="2"
+             inkscape:zoom="0.7"
+             inkscape:cx="205.81395"
+             inkscape:cy="-68.376196"
+             inkscape:document-units="px"
+             inkscape:current-layer="layer1"
+             gridtolerance="10000"
+             inkscape:window-width="1280"
+             inkscape:window-height="938"
+             inkscape:window-x="-4"
+             inkscape:window-y="-4"
+             showguides="true"
+             inkscape:guide-bbox="true"
+             showgrid="false" />
+          <metadata
+             id="metadata1906">
+            <rdf:RDF>
+              <cc:Work
+                 rdf:about="">
+                <dc:format>image/svg+xml</dc:format>
+                <dc:type
+                   rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+              </cc:Work>
+            </rdf:RDF>
+          </metadata>
+        </svg>
+    </div>
+</div>
+
+<script src="D3/d3.js"></script>
+<script src="bootstrap-3.1.1-dist/js/jquery-1.11.1.js"></script>
+<script src="bootstrap-3.1.1-dist/js/bootstrap.min.js"></script>
+
+<script>
+
+data = [{x:400,y:400}];
+
+
+var width = document.getElementById("svgArea").offsetWidth;
+var height = 800;
+var svg = d3.select("svg")
+            .attr("width", width)
+            .attr("height", height);
+
+// var leaf = svg.selectAll('g.leaf')
+//     .data(data)
+//     .enter()
+//     .append('g')
+//     .attr("transform", function(d) { return "translate(" + (d.x) + "," + (d.y) + ")"; })
+//     //.attr('transform', function(d){ return "rotate(0 " + d.x + " " + d.y + ")";});
+//     //.attr('transform', function(d){ return 'translate(' + d.x + ',' + d.y + ') rotate(' + 0 +') translate(' + -d.x + ',' + -d.y + ')'});
+
+// leaf.append("use")
+//     .attr("xlink:href", "#leaf" )
+
+
+var leaf = svg.selectAll('use')
+    .data(data)
+    .enter()
+    .append('use')
+    .attr('x', function(d){return d.x})
+    .attr('y', function(d){return d.y})
+    .attr('transform', function(d){ return "rotate(0 " + d.x + " " + d.y + ")";})
+    .attr("xlink:href", "#layer1");
+
+svg.selectAll('circle')
+    .data(data)
+    .enter()
+    .append('circle')
+    .attr('cx', function(d){return d.x})
+    .attr('cy', function(d){return d.y})
+    .attr('r', 5);
+
+//transform="translate(-263.511,-606.14844)"
+
+
+
+</script>
+</body>
+
+</html>

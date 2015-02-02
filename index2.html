@@ -41,7 +41,7 @@ var leaves = [];
 var ar = 0.7; // Randomness
 
 var seedWidth = 10;
-var maxDepth = 10;
+var maxDepth = 8;
 
 function degToRad(degree) {
     return degree*Math.PI/180;
@@ -86,8 +86,8 @@ function branch(b) {
     //     aRand = degToRad(5);
     // }
 
-    da = degToRad(45);
-    aRand = degToRad(10);
+    da = degToRad(25);
+    aRand = degToRad(8);
 
     if (b.depth === maxDepth) {
         b.visible = false;
