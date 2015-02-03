@@ -18,14 +18,22 @@
 div.tooltip {   
   position: absolute;           
   text-align: center;                          
-  padding: 10px;  
+  padding: 5px;  
   color: #fff;           
   font: 12px sans-serif;  
-  font-weight: bold;      
+  /*font-weight: bold;      */
   background: rgba(0, 0, 0, 0.9);;   
   border: 2px;      
-  border-radius: 5px;           
-  pointer-events: none;         
+  border-radius: 10px;           
+  pointer-events: none;
+  margin: 20px         
+}
+
+div.tooltip p{
+    text-align: left;
+}
+div.tooltip h1{
+    text-align: left;
 }
 
 </style>
@@ -36,6 +44,10 @@ div.tooltip {
     <div class="col-md-4" id="content">
         <h1>Make a change</h1>
         <p>Save the Children has been working to fight hunger, prevent malnutrition and improve the lives of boys and girls in Africa since 1963. Whether we are working with orphaned children in sub-Saharan Africa or emergency relief for refugees in North Africa, Save the Children strives to meet the needs to vulnerable children and their families with lifesaving and life-changing programs. Charities can make a difference, with a hand-up, not a handout.</p>
+
+        Please enter your name: <input type="text" class="form-control" id="field-name" name="name"><br>
+        Amount you wish to donate: <input type="text" class="form-control" id="field-amount" name="amount"><br>
+
         <button class="btn btn-primary" id='donate' type="submit">Donate</button>
         <button class="btn btn-success" id='animate' type="submit">Animate</button>
         <button class="btn btn-danger" id='atonce' type="submit">At Once</button>
@@ -168,18 +180,6 @@ function branch(b) {
         dl = 0.75;
     }
 
-    //start from depth n+1 the angle is 20
-    // if (b.depth >= 3) {
-    //     da = degToRad(25);
-    //     aRand = degToRad(10);
-    // } else if (b.depth >= 5) {
-    //     da = degToRad(30);
-    //     aRand = degToRad(10);
-    // } else {
-    //     da = degToRad(20);
-    //     aRand = degToRad(5);
-    // }
-
     lRand = 0.15;
     lRand = Math.random() * (lRand);
 
@@ -206,11 +206,6 @@ function branch(b) {
     node = [];
     node.push(b.i);
     node = node.concat(b.node);
-
-    // console.log(b.i);
-    // console.log(b.depth);
-    // console.log(b.dl);
-    // console.log('-----')
 
     // Left branch
     //daR = ar * Math.random() - ar * 0.5;
@@ -268,24 +263,39 @@ var svg = d3.select("svg")
 // Tree configuration
 var seed = {i: 0, x: 10, y: 20, angle: 0, length: 1, depth: 0, node: [], dl:0.5}; // a = angle, l = length, d = depth
 
-//svg.style("background-color", "aliceblue");
-
 function x1(d) {return xScale(d.x);}
 function y1(d) {return yScale(d.y);}
 function x2(d) {return xScale(endPt(d).x);}
 function y2(d) {return yScale(endPt(d).y);}
 
-function highlightParents(d) {
-    var colour = d3.event.type === 'mouseover' ? 'green' : '#470000';
-    var depth = d.depth;
-    for(var i = 0; i <= depth; i++) {
-        d3.select('#id-'+parseInt(d.i)).style('stroke', colour);
-        d = branches[d.parent];
-    }   
+function showToolTip(d)
+{
+    var branchID = d.i;
+    var totalAmount = 0;
+
+    //for all leaves => find leaves with node array containing id == d.id
+    leaves.forEach(function(d){
+        var index = d.node.indexOf(branchID);
+
+        if (index != -1)
+        {
+            if (typeof d.amount != 'undefined')
+            {
+                totalAmount += +d.amount;    
+            }
+        }
+    })
+
+    tooltip.transition().duration(200).style("opacity", 1);      
+        
+    tooltip.html("<h4>branch name:"+ d.i + "</h4>" + "<h4>amount: "+ totalAmount + "</h4>")  
+      .style("left", (d3.event.pageX) + "px")     
+      .style("top", (d3.event.pageY - 28) + "px");  
 }
 
-function highlightParents2(d) {
-    console.log(d);
+function highlightParents(d) {
+    var keyBranches = $.grep(leaves, function(e){ return e.depth == branchingDepth; });
+
     var colour = d3.event.type === 'mouseover' ? 'green' : '#470000';
     var depth = d.depth;
     for(var i = 0; i <= depth; i++) {
@@ -329,19 +339,7 @@ svg.selectAll('line')
     .attr('y1', y1)
     .attr('x2', x2)
     .attr('y2', y2)
-    //.attr('stroke-width', 5)
     .attr('stroke', '#470000')
-    // .style('stroke-width', function(d) {if (d.depth == 0) { return parseInt(seedWidth) + 'px'}
-    //                                     else if (d.depth == 1) { return 55 + 'px'; }
-    //                                     else if (d.depth == 2) { return 37 + 'px'; }
-    //                                     else if (d.depth == 3) { return 21 + 'px'; }
-    //                                     else if (d.depth == 4) { return 13 + 'px'; }
-    //                                     else if (d.depth == 5) { return 9 + 'px'}
-    //                                     else if (d.depth == 6) { return 6 + 'px'; }
-    //                                     else if (d.depth == 7 ) { return 4 + 'px'; } 
-    //                                     else if (d.depth == 8 ) { return 3 + 'px'; } 
-    //                                     else if (d.depth == 9 ) { return 2 + 'px'; } 
-    //                                     else { return 1 + 'px'; }})
     .style('stroke-width', function(d){
         var x2 = xScale(endPt(d).x);
         var y2 = yScale(endPt(d).y);
@@ -350,12 +348,15 @@ svg.selectAll('line')
         var length = Math.pow(Math.pow((x2-x1),2)+Math.pow((y2-y1),2),0.5);
         var width = treeWidth(length,d.depth);
         return width < 1 ? parseInt(1) + 'px' : parseInt(width) + 'px';
-        //return parseInt(treeWidth(length)) + 'px';
     })
     .style('stroke-linecap', 'round')
     .attr('id', function(d) {return 'id-'+d.i;})
-    .on('mouseover', highlightParents2)
-    .on('mouseout', highlightParents);
+    .on('mouseover', showToolTip)
+    .on("mouseout", function(d) {       
+            tooltip.transition()        
+                .duration(500)      
+                .style("opacity", 0);   
+            });
 
 leafScale(1);
 
@@ -376,12 +377,9 @@ svg.selectAll('use')
     .attr('visibility', function(d){
          return d.visible ? 'visible' : 'hidden'
     })
-    //.on('mouseover', highlightLeaf)
-    //.on('mouseout', function(d){svg.selectAll('use').style('fill', 'green')});
     .on("mouseover", function(d) {      
         tooltip.transition().duration(200).style("opacity", 1);      
-        
-        tooltip.html("<strong>Depth: </strong>" + d.depth)  
+        tooltip.html("<h4>name:         "+ d.name + "</h4>" + "<h4>amount: "+ d.amount + "</h4>")  
           .style("left", (d3.event.pageX) + "px")     
           .style("top", (d3.event.pageY - 28) + "px");  
     })
@@ -400,29 +398,6 @@ svg.append('rect')
     .attr('y', yScale(trunk.y))
     .attr('fill', 'white');
 
-// svg.selectAll('ellipse')
-//     .data(leaves)
-//     .enter()
-//     .append('ellipse')
-//     .attr('cx', x2)
-//     .attr('cy', y2)
-//     .attr('rx', 4)
-//     .attr('ry', 10)
-//     .attr('id', function(d,i){return 'id-' + i})
-//     .attr('visibility', function(d){
-//          return d.visible ? 'visible' : 'hidden'
-//     })
-//     .attr('transform', function(d){
-//         // angle in making branch and rotate is different. 20 degree angle in branch eq to -20 degree angle in rotate
-//         return 'rotate(' + radToDeg(-d.angle) + ' ' + endPt(d).x + ' ' + endPt(d).y + ')';
-//         //return 'rotate(' + radToDeg(denormalizeAngle(d.angle)) + ' ' + endPt(d).x + ' ' + endPt(d).y + ')';
-//     })
-//     //.attr('transform', function(d){return "rotate(" + radToDeg(denormalizeAngle(d.angle)) + ")"})
-//     .attr('stroke', 'black')
-//     .attr('fill', "green")
-//     .on('mouseover', highlightLeaf)
-//     .on('mouseout', function(d){svg.selectAll('ellipse').style('fill', 'green')});
-
 d3.select('#donate').on('click', update);
 d3.select('#animate').on('click', animate);
 d3.select('#atonce').on('click', atonce);
@@ -431,8 +406,19 @@ var numOfClick = 0;
 
 function update() {
     console.log('btn clicked')
+    var name = $('#field-name').val();
+    var amount = $('#field-amount').val();
+
+
+    console.log(leaves);
     numOfClick++;
     leaves[numOfClick].visible = true;
+
+    leaves[numOfClick].name = name;
+    leaves[numOfClick].amount = amount;
+
+    console.log(leaves[numOfClick]);
+
     svg
         .selectAll('use')
         .data(leaves)
@@ -484,8 +470,6 @@ function getLength(branch) {
     return Math.pow(Math.pow((x2-x1),2)+Math.pow((y2-y1),2),0.5);
 }
 
-
 </script>
 </body>
-
 </html>
