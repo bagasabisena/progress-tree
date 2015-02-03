@@ -10,9 +10,7 @@
 #content {
     padding-left: 50px;
 }
-#svgArea {
-    display: block;
-}
+
 </style>
 
 <body>
@@ -146,12 +144,14 @@ function branch(b) {
 
     branches.push(b);
 
-    // start from depth n+1 the length is 0.8*length
+    //start from depth n+1 the length is 0.8*length
     if (b.depth >= 0 && b.depth < 1) {
         dl = 0.5;
     } else {
         dl = 0.75;
     }
+
+    //dl = 0.75;
 
     //start from depth n+1 the angle is 20
     // if (b.depth >= 3) {
@@ -242,23 +242,28 @@ function endPt(b) {
 }
 
 // define svg for placeholder
-//var width = 800;
-var width = document.getElementById("svgArea").offsetWidth;
-var height = 800;
+// var margin = {top: 20, right: 10, bottom: 20, left: 30};
+// var width = 800 - margin.left - margin.right;
+// var height = 800 - margin.top - margin.bottom;
+//var width = document.getElementById("svgArea").offsetWidth;
+var width = 600;
+var height = 600;
+
 var svg = d3.select("svg")
             .attr("width", width)
             .attr("height", height)
-            .attr('viewBox', '0 0 ' + width + ' ' + height);
+            .attr('id', 'tree')
+            .attr('viewBox', '50 50 ' + width + ' ' + height);
 
 // Tree configuration
-var seed = {i: 0, x: width/2, y: height-0, angle: 0, length: height/4, depth: 0, node: []}; // a = angle, l = length, d = depth
+var seed = {i: 0, x: 10, y: 20, angle: 0, length: 1, depth: 0, node: [], dl:0.5}; // a = angle, l = length, d = depth
 
 //svg.style("background-color", "aliceblue");
 
-function x1(d) {return d.x;}
-function y1(d) {return d.y;}
-function x2(d) {return endPt(d).x;}
-function y2(d) {return endPt(d).y;}
+function x1(d) {return xScale(d.x);}
+function y1(d) {return yScale(d.y);}
+function x2(d) {return xScale(endPt(d).x);}
+function y2(d) {return yScale(endPt(d).y);}
 
 function highlightParents(d) {
     var colour = d3.event.type === 'mouseover' ? 'green' : '#470000';
@@ -290,7 +295,21 @@ function highlightLeaf(d,i) {
 branch(seed);
 
 var xMax = Math.max.apply(null, branches.map(function(element){return element.x}));
+var xMin = Math.min.apply(null, branches.map(function(element){return element.x}));
 var yMax = Math.max.apply(null, branches.map(function(element){return element.y}));
+var yMin = Math.min.apply(null, branches.map(function(element){return element.y}));
+
+// an ugly hack to leave room for leave to grow inside the svg container
+// so that the leaf is not cut out of the svg
+var leafWidth = 0.8;
+
+var xScale = d3.scale.linear()
+        .domain([xMin-leafWidth, xMax+leafWidth])
+        .range([0, width]);
+
+var yScale = d3.scale.linear()
+        .domain([yMin-leafWidth, yMax+leafWidth])
+        .range([0, height]);
 
 svg.selectAll('line')
     .data(branches)
@@ -302,17 +321,28 @@ svg.selectAll('line')
     .attr('y2', y2)
     //.attr('stroke-width', 5)
     .attr('stroke', '#470000')
-    .style('stroke-width', function(d) {if (d.depth == 0) { return parseInt(seedWidth) + 'px'}
-                                        else if (d.depth == 1) { return 55 + 'px'; }
-                                        else if (d.depth == 2) { return 37 + 'px'; }
-                                        else if (d.depth == 3) { return 21 + 'px'; }
-                                        else if (d.depth == 4) { return 13 + 'px'; }
-                                        else if (d.depth == 5) { return 9 + 'px'}
-                                        else if (d.depth == 6) { return 6 + 'px'; }
-                                        else if (d.depth == 7 ) { return 4 + 'px'; } 
-                                        else if (d.depth == 8 ) { return 3 + 'px'; } 
-                                        else if (d.depth == 9 ) { return 2 + 'px'; } 
-                                        else { return 1 + 'px'; }})
+    // .style('stroke-width', function(d) {if (d.depth == 0) { return parseInt(seedWidth) + 'px'}
+    //                                     else if (d.depth == 1) { return 55 + 'px'; }
+    //                                     else if (d.depth == 2) { return 37 + 'px'; }
+    //                                     else if (d.depth == 3) { return 21 + 'px'; }
+    //                                     else if (d.depth == 4) { return 13 + 'px'; }
+    //                                     else if (d.depth == 5) { return 9 + 'px'}
+    //                                     else if (d.depth == 6) { return 6 + 'px'; }
+    //                                     else if (d.depth == 7 ) { return 4 + 'px'; } 
+    //                                     else if (d.depth == 8 ) { return 3 + 'px'; } 
+    //                                     else if (d.depth == 9 ) { return 2 + 'px'; } 
+    //                                     else { return 1 + 'px'; }})
+    .style('stroke-width', function(d){
+        var x2 = xScale(endPt(d).x);
+        var y2 = yScale(endPt(d).y);
+        var x1 = xScale(d.x);
+        var y1 = yScale(d.y);
+        var length = Math.pow(Math.pow((x2-x1),2)+Math.pow((y2-y1),2),0.5);
+        var width = treeWidth(length,d.depth);
+        return width < 1 ? parseInt(1) + 'px' : parseInt(width) + 'px';
+        //return parseInt(treeWidth(length)) + 'px';
+    })
+    //.style('stroke-width', function(d) {return parseInt(seedWidth + 1 - d.depth) + 'px';})
     .style('stroke-linecap', 'round')
     .attr('id', function(d) {return 'id-'+d.i;})
     .on('mouseover', highlightParents2)
@@ -327,7 +357,7 @@ svg.selectAll('use')
     .attr('x', x2)
     .attr('y', y2)
     .attr('id', function(d,i){return 'id-' + i})
-    .attr('transform', function(d){ return 'rotate(' + radToDeg(-d.angle) + ' ' + endPt(d).x + ' ' + endPt(d).y + ')';})
+    .attr('transform', function(d){ return 'rotate(' + radToDeg(-d.angle) + ' ' + xScale(endPt(d).x) + ' ' + yScale(endPt(d).y) + ')';})
     .attr("xlink:href", "#layer1")
     .attr('style', 'fill:green;stroke:black')
     .attr('visibility', function(d){
@@ -407,8 +437,9 @@ function leafScale(scale) {
         .attr('transform', 'scale(' + scale*0.1 + ') rotate(132 355 210)');
 }
 
-function calculateTreeSpan(depth) {
-
+function treeWidth(length,depth) {
+    return depth === 0 ? (0.4059*length-8.1419)*0.6 : 0.4059*length-8.1419;
+    //return 0.4059*length-8.1419;
 }
 
 
