@@ -9,6 +9,7 @@
 <style type="text/css">
 #content {
     padding-left: 50px;
+    padding-top: 100px;
 }
 
 </style>
@@ -368,12 +369,12 @@ svg.selectAll('use')
 
 // another hack to hide rounded line of first branch (the trunk)
 var trunk = branches[0];
-// svg.append('rect')
-//     .attr('width', xScale(treeWidth(trunk,0))
-//     .attr('height', yScale(trunk.length)*0.1)
-//     .attr('x', xScale(trunk.x-treeWidth(trunk,0)))
-//     .attr('y', yScale(trunk.y-trunk.length*0.1)))
-//     .attr('fill', 'white');
+svg.append('rect')
+    .attr('height', getLength(trunk)*0.3)
+    .attr('width', width)
+    .attr('x', 0)
+    .attr('y', yScale(trunk.y))
+    .attr('fill', 'white');
 
 // svg.append('rect')
 //     .attr('width', 75)
@@ -456,6 +457,14 @@ function leafScale(scale) {
 function treeWidth(length,depth) {
     return depth === 0 ? (0.4059*length-8.1419)*0.73 : 0.4059*length-8.1419;
     //return 0.4059*length-8.1419;
+}
+
+function getLength(branch) {
+    var x2 = xScale(endPt(branch).x);
+    var y2 = yScale(endPt(branch).y);
+    var x1 = xScale(branch.x);
+    var y1 = yScale(branch.y);
+    return Math.pow(Math.pow((x2-x1),2)+Math.pow((y2-y1),2),0.5);
 }
 
 
