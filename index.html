@@ -197,6 +197,7 @@ function branch(b) {
 
     if (b.depth === maxDepth) {
         b.visible = false;
+        b.leafId = leaves.length;
         leaves.push(b);
         return;
     }
@@ -405,25 +406,77 @@ d3.select('#atonce').on('click', atonce);
 var numOfClick = 0;
 
 function update() {
+
+    // randomFill();
+    // return;
+
     console.log('btn clicked')
     var name = $('#field-name').val();
     var amount = $('#field-amount').val();
 
-
-    console.log(leaves);
     numOfClick++;
-    leaves[numOfClick].visible = true;
 
-    leaves[numOfClick].name = name;
-    leaves[numOfClick].amount = amount;
+    var leavesCopy = leaves;
 
-    console.log(leaves[numOfClick]);
+    var randIndex = Math.random() * leavesCopy.length;
+    randIndex = Math.round(randIndex);
+
+    var removed = leavesCopy.splice(randIndex, 1)[0];
+  
+    // console.log(removed);
+
+    // var randomLeaf = $.grep(leaves, function(e){ return e.i == removed.i; });
+
+    // console.log(randomLeaf);
+
+    // randomLeaf.visible = true;
+
+    // randomLeaf.name = name;
+    // randomLeaf.amount = amount;
+
+    // do
+    // {
+
+    // }while(leaves[randIndex].amount == 'undefined');
+    // leaves[numOfClick].visible = true;
+
+    // leaves[numOfClick].name = name;
+    // leaves[numOfClick].amount = amount;
+
+    leaves[removed.leafId].visible = true;
+
+    leaves[removed.leafId].name = name;
+    leaves[removed.leafId].amount = amount;
 
     svg
         .selectAll('use')
         .data(leaves)
         .transition()
         .attr('visibility', function(d){return d.visible ? 'visible' : 'hidden'});
+}
+
+
+function randomFill()
+{
+    var halfFull = leaves.length / 4;
+
+    for (i = 0; i < halfFull; i++)
+    {
+        var randIndex = Math.random() * leaves.length;
+        randIndex = Math.round(randIndex);
+
+        leaves[randIndex].visible = true;
+
+        leaves[randIndex].name = "name";
+        leaves[randIndex].amount = "amount";
+        console.log(leaves[numOfClick]);
+
+        svg
+            .selectAll('use')
+            .data(leaves)
+            .transition()
+            .attr('visibility', function(d){return d.visible ? 'visible' : 'hidden'});
+        }
 }
 
 function animate() {
