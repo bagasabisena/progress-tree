@@ -416,7 +416,8 @@ function update() {
 
     numOfClick++;
 
-    var leavesCopy = leaves;
+    var leavesCopy = leaves.map(function(d){return d.leafId});
+    console.log(leavesCopy)
 
     var randIndex = Math.random() * leavesCopy.length;
     randIndex = Math.round(randIndex);
@@ -443,10 +444,10 @@ function update() {
     // leaves[numOfClick].name = name;
     // leaves[numOfClick].amount = amount;
 
-    leaves[removed.leafId].visible = true;
+    leaves[removed].visible = true;
 
-    leaves[removed.leafId].name = name;
-    leaves[removed.leafId].amount = amount;
+    leaves[removed].name = name;
+    leaves[removed].amount = amount;
 
     svg
         .selectAll('use')
